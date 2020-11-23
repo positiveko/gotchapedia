@@ -1,10 +1,10 @@
 import React, { Component } from 'react';
 import { withRouter } from 'react-router-dom';
+import { DETAIL_API, DETAIL_TOKEN } from '../../../config';
 import './search.scss';
 
-const DETAIL_API = 'http://10.58.1.5:8000/movie/23';
-const DETAIL_TOKEN =
-  'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6NH0.GOPhcT6nmt8M7Apx1rI-fvvQfSDIMTtWMe371hZ3t8E';
+const RECENT_KEYWORDS = 'RECENT_KEYWORDS';
+let searchValueList = [];
 
 class Search extends Component {
   constructor() {
@@ -19,41 +19,83 @@ class Search extends Component {
   }
 
   componentDidMount() {
-    this.loadDetailData();
+    window.addEventListener('click', this.handleInputBlur);
   }
 
-  loadDetailData = () => {
-    fetch(DETAIL_API, {
-      method: 'GET',
-      headers: {
-        Authorization: DETAIL_TOKEN,
-      },
-    })
-      .then((res) => res.json())
-      .then((res) => this.setState({ detailData: res.data }))
-      .catch((error) => console.log('error', error));
+  componentWillUnmount() {
+    window.removeEventListener('click', this.handleInputBlur);
+  }
+
+  handleInputBlur = (e) => {
+    // e.stopPropagation();
+
+    const isExist = e.composedPath().includes(this.props.inputRef.current);
+
+    console.log(isExist);
+    if (!isExist) {
+      this.setState({ isListActive: false });
+    }
+    // for (let node of e.composedPath()) {
+    //   console.log(node == this.input.current);
+    //   // console.log();
+    // }
+
+    // if (!isExist) console.log('input', e.path);
+
+    // if (!isExist) {
+    //   this.setState({ isListActive: false });
+    // }
   };
 
-  goToDetail = (event) => {
-    console.log('click');
-    this.props.history.push(`/monsters/detail/${event.key}`);
-    this.setState({ isListActive: false });
+  // 잠시 꺼놓습니다..
+  // componentDidMount() {
+  //   this.loadDetailData();
+  // }
+
+  // loadDetailData = () => {
+  //   fetch(DETAIL_API, {
+  //     method: 'GET',
+  //     headers: {
+  //       Authorization: DETAIL_TOKEN,
+  //     },
+  //   })
+  //     .then((res) => res.json())
+  //     .then((res) => this.setState({ detailData: res.data }))
+  //     .catch((error) => console.log('error', error));
+  // };
+
+  goToDetail = (e) => {
+    // event.stopPropagation();
+    // console.log(e);
+    const isExist = e.nativeEvent.path.includes(this.props.inputRef.current);
+    console.log(isExist);
+    // console.log('검색결과', isExist);
+    // this.props.history.push(`movie-detail/${event.key}`);
+    // this.setState({ isListActive: false });
   };
 
   saveKeyword = () => {
     const { searchValue } = this.state;
-    console.log('enter');
+    searchValueList.push(searchValue);
+    const setSearchValueList = Array.from(new Set(searchValueList));
+    localStorage.setItem(RECENT_KEYWORDS, JSON.stringify(setSearchValueList));
+  };
+
+  deleteKeywords = () => {
+    console.log('click'); // 클릭이 안 됨.. 왜...?
   };
 
   searchMovie = (event) => {
-    event.preventDefault();
+    // event.preventDefault();
     const { searchValue } = this.state;
     const { searchData } = this.props;
     const searchPool = searchData.data;
     const searchKeywords = searchValue.split(' ');
     let tempSearchPool = [...searchPool];
     let tempFilteredMovie = [];
-
+    if (searchValue.trim() === '') {
+      return;
+    }
     searchKeywords.forEach((key) => {
       if (key !== '') {
         tempFilteredMovie = tempSearchPool.filter((movie) => {
@@ -64,9 +106,9 @@ class Search extends Component {
         tempSearchPool = [...tempFilteredMovie];
       }
     });
-    // if (event.key === 'Enter') {
-    //   localStorage.setItem(RECENT_KEYWORDS, searchValue);
-    // }
+    if (event.key === 'Enter') {
+      this.saveKeyword();
+    }
     this.setState({ filteredMovie: tempFilteredMovie });
   };
 
@@ -82,13 +124,11 @@ class Search extends Component {
       filteredMovie,
       detailData,
     } = this.state;
-    console.log(detailData.subImage && detailData.subImage[0].url);
+    let loadedKeywords = JSON.parse(localStorage.getItem(RECENT_KEYWORDS));
+    console.log(loadedKeywords);
 
     return (
       <>
-        <div className='temp'>
-          {/* <img src={detailData && detailData.subImage[0].url} alt="temp"/> */}
-        </div>
         <input
           type='text'
           className='searchInput'
@@ -97,16 +137,22 @@ class Search extends Component {
           value={searchValue}
           onChange={this.onSearchInputChange}
           onFocus={() => this.setState({ isListActive: true })}
-          onBlur={() =>
-            this.setState({ isListActive: false, isSearchOn: false })
-          }
+          ref={this.input}
+          // onBlur={(e) =>
+          //   {
+          //     console.log(e)
+          //     this.setState({ isListActive: false })
+          //   }
+          // }
           onKeyUp={this.searchMovie}
         />
         <div className={isListActive ? 'listBox' : 'displayNone'}>
           <div className='searchList'>
             <div className='searchHeaderWrapper'>
               <span>최근 검색어</span>
-              <div className='keywordDeleteBtn'>모두 삭제</div>
+              <div className='keywordDeleteBtn' onClick={this.deleteKeywords}>
+                모두 삭제
+              </div>
             </div>
             <ul className='latestList'>
               {filteredMovie &&
@@ -118,6 +164,10 @@ class Search extends Component {
                     {movie.title}
                   </li>
                 ))}
+              {loadedKeywords &&
+                loadedKeywords.map((keyword) => (
+                  <li className='resultMovie'>{keyword}</li>
+                ))}
             </ul>
           </div>
           <div className='popularList'>
@@ -126,7 +176,10 @@ class Search extends Component {
               <div className='keywordDeleteBtn'>모두 삭제</div>
             </div>
             <ul className='latestList'>
-              <li className='resultMovie' key='23' onClick={this.goToDetail}>
+              <li
+                className='resultMovie'
+                key='23'
+                onClickCapture={this.goToDetail}>
                 바닐라 스카이
               </li>
               <li className='resultMovie'>라라랜드</li>

@@ -1,20 +1,15 @@
 import React, { Component } from 'react';
 import Nav from '../../../components/Nav/Nav';
 import Chart from './Chart/Chart';
-import './mytaste.scss';
 import PreferredCountryGenre from './PreferredCountreNation/PreferredCountryGenre';
 import WordCloud from './wordCloud/wordCloud';
-
-const PREFERRED_TOKEN =
-  'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6NH0.GOPhcT6nmt8M7Apx1rI-fvvQfSDIMTtWMe371hZ3t8E';
-const PREFERRED_API =
-  'http://10.58.0.152:8000/analysis/favorite?category=country';
-// const PREFERRED_API = 'http://localhost:3000/data/preferredCountryGenre.json';
-
-const MYSTAR_TOKEN =
-  'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6MX0.YYwzzz5zYJpbkb6HvV-kEAOYXPLiS6LkmHRGHl5R1vA';
-// const MYSTAR_API = 'http://10.58.7.222:8000/analysis/my_star';
-const MYSTAR_API = 'http://localhost:3000/data/my_star.json';
+import {
+  PREFERRED_API,
+  PREFERRED_TOKEN,
+  MYSTAR_API,
+  MYSTAR_TOKEN,
+} from '../../../config';
+import './mytaste.scss';
 
 class Mytaste extends Component {
   constructor() {
@@ -27,7 +22,7 @@ class Mytaste extends Component {
           {
             label: 'Star Ratings',
             barThickness: 35,
-            data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            data: [3, 2, 6, 7, 8, 1, 2, 3, 4, 6, 9],
             backgroundColor: Array(10).fill('#fbdd62'),
           },
         ],
@@ -84,12 +79,10 @@ class Mytaste extends Component {
     return (
       <>
         <Nav />
-
         <div className='Mytaste'>
           <div className='header'>
             <img
-              src='/images/logoPink.png
-            '
+              src='/images/gotchapediaPink.png'
               alt='logo'
               className='logo'
             />

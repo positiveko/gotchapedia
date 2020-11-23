@@ -1,25 +1,34 @@
+import { Link } from 'react-router-dom';
 import React, { Component } from 'react';
 import Nav from '../../components/Nav/Nav';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowLeft } from '@fortawesome/free-solid-svg-icons';
+import {
+  MYPAGE_API,
+  MYPAGE_TOKEN,
+  WANNAWATCH_API,
+  WATCHING_API,
+} from '../../config';
 import './mypage.scss';
-
-const MYPAGE_API = 'http://localhost:3000/data/myPage.json';
-const MYPAGE_TOKEN = '';
 
 class Mypage extends Component {
   constructor() {
     super();
     this.state = {
       myData: {},
+      wannaWatchData: {},
+      watchingData: {},
+      isListOpen: false,
     };
   }
 
   componentDidMount() {
-    this.loadMypageData();
+    this.loadMyData();
+    this.loadWannaWatchData();
+    this.loadWatchingData();
   }
 
-  loadMypageData = () => {
+  loadMyData = () => {
     fetch(MYPAGE_API, {
       method: 'GET',
       headers: {
@@ -31,9 +40,39 @@ class Mypage extends Component {
       .catch((error) => console.log('error', error));
   };
 
+  loadWannaWatchData = () => {
+    fetch(MYPAGE_API, {
+      method: 'GET',
+      headers: {
+        Authorization: MYPAGE_TOKEN,
+      },
+    })
+      .then((res) => res.json())
+      .then((res) => this.setState({ wannaWatchData: res }))
+      .catch((error) => console.log('error', error));
+  };
+
+  loadWatchingData = () => {
+    fetch(MYPAGE_API, {
+      method: 'GET',
+      headers: {
+        Authorization: MYPAGE_TOKEN,
+      },
+    })
+      .then((res) => res.json())
+      .then((res) => this.setState({ watchingData: res }))
+      .catch((error) => console.log('error', error));
+  };
+
+  openList = () => {
+
+  }
+
   render() {
-    const { myData } = this.state;
+    const { myData, wannaWatchData, watchingData, isListOpen } = this.state;
     const movieData = myData.data;
+    const wannaData = wannaWatchData.data;
+    const watchData = watchingData.data;
 
     return (
       <>
@@ -41,6 +80,9 @@ class Mypage extends Component {
         <div className='MyPage'>
           <div className='header'>
             <FontAwesomeIcon className='headerArrow' icon={faArrowLeft} />
+            <div className='myTasteBtn'>
+              <Link to='/mypage-mytaste'>취향분석</Link>
+            </div>
           </div>
           <section className='evaluationSection'>
             <div className='sectionHeader'>
@@ -75,15 +117,15 @@ class Mypage extends Component {
               <div className='headerLeft'>
                 <span>보고싶어요</span>
                 <span className='sectionCount'>
-                  {movieData && movieData.length}
+                  {wannaData && wannaData.length}
                 </span>
               </div>
               <div className='headerRight'>더보기</div>
             </div>
 
             <div className='movieList'>
-              {movieData &&
-                movieData.map((movie) => (
+              {wannaData &&
+                wannaData.map((movie) => (
                   <div key={movie.movieId} className='movieBox'>
                     <div className='posterWrapper'>
                       <img
@@ -103,15 +145,15 @@ class Mypage extends Component {
               <div className='headerLeft'>
                 <span>보는중</span>
                 <span className='sectionCount'>
-                  {movieData && movieData.length}
+                  {watchData && watchData.length}
                 </span>
               </div>
               <div className='headerRight'>더보기</div>
             </div>
 
             <div className='movieList'>
-              {movieData &&
-                movieData.map((movie) => (
+              {watchData &&
+                watchData.map((movie) => (
                   <div key={movie.movieId} className='movieBox'>
                     <div className='posterWrapper'>
                       <img
