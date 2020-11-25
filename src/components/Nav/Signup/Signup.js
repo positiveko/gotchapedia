@@ -1,5 +1,7 @@
 import React, { Component } from 'react';
 import './signup.scss';
+import AuthService from '../../../service/auth_service';
+import { GoogleLogin } from 'react-google-login';
 
 class Signup extends Component {
   constructor() {
@@ -10,6 +12,43 @@ class Signup extends Component {
       password: '',
     };
   }
+
+  fetchSignUp = () => {
+    const { name, email, password } = this.state;
+    fetch('http://10.58.5.89:8000/user/log-in', {
+      method: 'POST',
+      body: JSON.stringify({
+        name,
+        email,
+        password,
+      }),
+    })
+      .then((response) => response.json())
+      .then((result) => {
+        if (result) {
+          console.log(result);
+        } else {
+          alert('아이디 확인하기');
+        }
+      })
+      .catch((error) => console.log(error));
+  };
+
+  setData = (data) => {
+    this.setState({
+      name: data.additionalUserInfo.profile.name,
+      email: data.additionalUserInfo.profile.email,
+      password: data.user.uid,
+    });
+    this.fetchSignUp(data);
+  };
+
+  googleLogin = (event) => {
+    const { authService } = this.props;
+    authService
+      .login(event.currentTarget.id)
+      .then((data) => this.setData(data));
+  };
 
   handleInput = (e) => {
     const { value, name } = e.target;
@@ -30,29 +69,8 @@ class Signup extends Component {
     } else if (!checkName) alert('이름을 입력해주세요');
   };
 
-  makeRequest = (name, email, password) => {
-    fetch('http://10.58.7.77:8000/user', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        name: '김병준',
-        email: 'qudwns123@gmail.com',
-        password: 'qudwns123',
-      }),
-    })
-      .then((res) => res.json())
-      .then((res) => {
-        alert(res.message);
-        // this.setState({
-        // 'name': '김태현',
-        // 'email':
-      });
-    // });
-  };
-
   render() {
+    const { name, email, password } = this.state;
     const { closeSignup } = this.props;
     return (
       <div className='Signup' onClick={closeSignup}>
@@ -86,14 +104,21 @@ class Signup extends Component {
                 onChange={this.handleInput}
                 name='password'
               />
-              <button className='signupBtn'>회원가입</button>
+              <button className='signupBtn' onClick={() => this.fetchSignUp()}>
+                회원가입
+              </button>
             </form>
             <div className='loginText'>
               이미 가입하셨나요? <span>로그인</span>
             </div>
             <div className='or'></div>
             <button className='kakaoBtn'>카카오 로그인</button>
-            <button className='googleBtn'>구글 로그인</button>
+            <button
+              className='googleBtn'
+              id='Google'
+              onClick={this.googleLogin}>
+              구글 로그인
+            </button>
           </div>
         </div>
       </div>

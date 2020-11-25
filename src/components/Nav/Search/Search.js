@@ -31,7 +31,7 @@ class Search extends Component {
 
     const isExist = e.composedPath().includes(this.props.inputRef.current);
 
-    console.log(isExist);
+    // console.log(isExist);
     if (!isExist) {
       this.setState({ isListActive: false });
     }
@@ -125,7 +125,7 @@ class Search extends Component {
       detailData,
     } = this.state;
     let loadedKeywords = JSON.parse(localStorage.getItem(RECENT_KEYWORDS));
-    console.log(loadedKeywords);
+    // console.log(loadedKeywords);
 
     return (
       <>

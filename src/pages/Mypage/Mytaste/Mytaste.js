@@ -3,6 +3,8 @@ import Nav from '../../../components/Nav/Nav';
 import Chart from './Chart/Chart';
 import PreferredCountryGenre from './PreferredCountreNation/PreferredCountryGenre';
 import WordCloud from './wordCloud/wordCloud';
+import ImageUploader from '../../../service/image_uploader';
+import ImgInput from './ImgInput/ImgInput';
 import {
   PREFERRED_API,
   PREFERRED_TOKEN,
@@ -10,6 +12,11 @@ import {
   MYSTAR_TOKEN,
 } from '../../../config';
 import './mytaste.scss';
+
+const imageUploader = new ImageUploader();
+const FileInput = (props) => (
+  <ImgInput {...props} imageUploader={imageUploader} />
+);
 
 class Mytaste extends Component {
   constructor() {
@@ -22,12 +29,13 @@ class Mytaste extends Component {
           {
             label: 'Star Ratings',
             barThickness: 35,
-            data: [3, 2, 6, 7, 8, 1, 2, 3, 4, 6, 9],
+            data: [1, 2, 3, 4, 9, 5, 3, 2, 1, 4],
             backgroundColor: Array(10).fill('#fbdd62'),
           },
         ],
       },
       myStar: {},
+      myUrl: '',
     };
   }
 
@@ -35,6 +43,14 @@ class Mytaste extends Component {
     this.loadMystarData();
     this.loadPreferredData();
   }
+
+  onChange = async (event) => {
+    // const { imageUploader } = this.props;
+    console.log(event.target.files[0]);
+    const uploadedImg = await imageUploader.upload(event.target.files[0]);
+    console.log(uploadedImg.url);
+    this.setState({ myUrl: uploadedImg.url });
+  };
 
   loadPreferredData = () => {
     fetch(PREFERRED_API, {
@@ -71,18 +87,40 @@ class Mytaste extends Component {
       tempData.push(myStar[key]);
     }
     chartData.datasets[0].data = tempData;
+    this.changeColorChart(chartData);
+  };
+
+  changeColorChart = (chartData) => {
+    const data = chartData.datasets[0].data;
+    const backgroundColor = this.state.chartData.datasets[0].backgroundColor;
+    let idx = data.indexOf(Math.max(...data));
+    backgroundColor[idx] = '#f8a236';
+    chartData.datasets[0]['backgroundColor'] = backgroundColor;
     this.setState({ chartData });
   };
 
   render() {
-    const { userData } = this.state;
+    const { userData, chartData, myUrl } = this.state;
+    console.log(myUrl);
     return (
       <>
         <Nav />
         <div className='Mytaste'>
           <div className='header'>
             <img
-              src='/images/gotchapediaPink.png'
+              src={myUrl}
+              className='headerBackgroundImg'
+              alt='uploadedImg'
+            />
+            <div className='imgInputBox'>
+              <ImgInput
+                imageUploader={imageUploader}
+                onChange={this.onChange}
+                myUrl={myUrl}
+              />
+            </div>
+            <img
+              src='/images/gotchapediawhite.png'
               alt='logo'
               className='logo'
             />
@@ -151,7 +189,7 @@ class Mytaste extends Component {
                 <div className='title'>영화 감상 시간</div>
                 <div className='timeWrapper'>
                   <div className='totalTime pink big bold'>
-                    {userData.watchingTime} 시간
+                    {userData.watchingTime / 60} 시간
                   </div>
                   <div className='timeMbti pink'>
                     상위 0.1%의 고지가 저 앞에 보여요.
