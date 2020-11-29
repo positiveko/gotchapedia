@@ -2,27 +2,30 @@ import React, { Component } from 'react';
 import Nav from '../../../components/Nav/Nav';
 import Chart from './Chart/Chart';
 import PreferredCountryGenre from './PreferredCountreNation/PreferredCountryGenre';
+import BelovedPeople from './BelovedPeople/BelovedPeople';
+import BelovedDirector from './BelovedPeople/BelovedDirector';
 import WordCloud from './wordCloud/wordCloud';
 import ImageUploader from '../../../service/image_uploader';
 import ImgInput from './ImgInput/ImgInput';
 import {
   PREFERRED_API,
+  PREFERRED_GENRE_API,
   PREFERRED_TOKEN,
   MYSTAR_API,
   MYSTAR_TOKEN,
+  IMG_UPLOAD_API,
 } from '../../../config';
 import './mytaste.scss';
 
 const imageUploader = new ImageUploader();
-const FileInput = (props) => (
-  <ImgInput {...props} imageUploader={imageUploader} />
-);
+let PROFILE_IMG = '';
 
 class Mytaste extends Component {
   constructor() {
     super();
     this.state = {
       userData: {},
+      userGenreData: {},
       chartData: {
         labels: ['', '1', '', '2', '', '3', '', '4', '', '5'],
         datasets: [
@@ -34,27 +37,51 @@ class Mytaste extends Component {
           },
         ],
       },
-      myStar: {},
-      myUrl: '',
+      myStar: [],
+      myUrl: PROFILE_IMG,
     };
   }
 
   componentDidMount() {
     this.loadMystarData();
     this.loadPreferredData();
+    this.loadPreferredGenreData();
+    this.loadProfileImg();
+  }
+
+  loadProfileImg = () => {
+    PROFILE_IMG = localStorage.getItem('profileImg');
+    if (PROFILE_IMG) this.setState({ myUrl: PROFILE_IMG });
+  };
+
+  componentDidUpdate(prevProps, prevState) {
+    const { myUrl } = this.state;
+    if (myUrl !== prevState.myUrl) {
+      this.setState({ myUrl });
+    }
   }
 
   onChange = async (event) => {
-    // const { imageUploader } = this.props;
-    console.log(event.target.files[0]);
     const uploadedImg = await imageUploader.upload(event.target.files[0]);
-    console.log(uploadedImg.url);
+    localStorage.setItem('profileImg', uploadedImg.url);
+
+    fetch(IMG_UPLOAD_API, {
+      method: 'PATCH',
+      headers: {
+        Authorization: PREFERRED_TOKEN,
+      },
+      body: JSON.stringify({
+        imageURL: uploadedImg.url,
+      }),
+    })
+      .then((response) => response.json())
+      .then((json) => console.log(json))
+      .catch((error) => console.log('error', error));
     this.setState({ myUrl: uploadedImg.url });
   };
 
   loadPreferredData = () => {
     fetch(PREFERRED_API, {
-      method: 'GET',
       headers: {
         Authorization: PREFERRED_TOKEN,
       },
@@ -64,16 +91,26 @@ class Mytaste extends Component {
       .catch((error) => console.log('error', error));
   };
 
+  loadPreferredGenreData = () => {
+    fetch(PREFERRED_GENRE_API, {
+      headers: {
+        Authorization: PREFERRED_TOKEN,
+      },
+    })
+      .then((res) => res.json())
+      .then((res) => this.setState({ userGenreData: res }))
+      .catch((error) => console.log('error', error));
+  };
+
   loadMystarData = () => {
     fetch(MYSTAR_API, {
-      method: 'GET',
       headers: {
         Authorization: MYSTAR_TOKEN,
       },
     })
       .then((res) => res.json())
       .then((res) =>
-        this.setState({ myStar: res.user }, () => {
+        this.setState({ myStar: Object.values(res.user) }, () => {
           this.setMyStar();
         })
       )
@@ -82,36 +119,21 @@ class Mytaste extends Component {
 
   setMyStar = () => {
     const { myStar, chartData } = this.state;
-    let tempData = [];
-    for (let key in myStar) {
-      tempData.push(myStar[key]);
-    }
-    chartData.datasets[0].data = tempData;
-    this.changeColorChart(chartData);
-  };
-
-  changeColorChart = (chartData) => {
-    const data = chartData.datasets[0].data;
-    const backgroundColor = this.state.chartData.datasets[0].backgroundColor;
-    let idx = data.indexOf(Math.max(...data));
-    backgroundColor[idx] = '#f8a236';
-    chartData.datasets[0]['backgroundColor'] = backgroundColor;
+    const { datasets } = this.state.chartData;
+    const tempDatasets = [...datasets];
+    [...tempDatasets][0].data = [...myStar];
+    const idx = [...myStar].indexOf(Math.max(...myStar));
+    [...tempDatasets][0].backgroundColor[idx] = '#f8a236';
     this.setState({ chartData });
   };
 
   render() {
-    const { userData, chartData, myUrl } = this.state;
-    console.log(myUrl);
+    const { userData, userGenreData, myUrl, chartData } = this.state;
     return (
       <>
         <Nav />
         <div className='Mytaste'>
           <div className='header'>
-            <img
-              src={myUrl}
-              className='headerBackgroundImg'
-              alt='uploadedImg'
-            />
             <div className='imgInputBox'>
               <ImgInput
                 imageUploader={imageUploader}
@@ -125,7 +147,11 @@ class Mytaste extends Component {
               className='logo'
             />
             <div className='text'>취향분석</div>
-            <img src='/images/profile.jpg' alt='profile' className='profile' />
+            <img
+              src={myUrl === '' ? '/images/defaultProfile.png' : myUrl}
+              alt='profile'
+              className='profile'
+            />
             <div className='userName'>고은정</div>
           </div>
           <div className='main'>
@@ -144,7 +170,7 @@ class Mytaste extends Component {
                     평가에 상대적으로 깐깐한 '깐새우파'.
                   </div>
                   <div className='graph'>
-                    <Chart chartData={this.state.chartData} />
+                    <Chart chartData={chartData} />
                   </div>
                   <ul className='row'>
                     <li>
@@ -175,16 +201,21 @@ class Mytaste extends Component {
               <div className='belovedActor'>
                 <div className='title'>선호배우</div>
                 <div className='listWrapper'>
-                  <img src='/images/belovedActor.png' alt='actor' />
+                  <BelovedPeople />
                 </div>
               </div>
               <div className='belovedDirector'>
                 <div className='title'>선호감독</div>
                 <div className='listWrapper'>
-                  <img src='/images/belovedActor.png' alt='actor' />
+                  <BelovedDirector />
                 </div>
               </div>
-              <PreferredCountryGenre userData={userData} />
+              {userData.wholeCount && userGenreData.wholeCount && (
+                <PreferredCountryGenre
+                  userData={userData}
+                  userGenreData={userGenreData}
+                />
+              )}
               <div className='movieWatchingTime'>
                 <div className='title'>영화 감상 시간</div>
                 <div className='timeWrapper'>

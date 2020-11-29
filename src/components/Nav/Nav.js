@@ -1,15 +1,12 @@
 import React, { Component } from 'react';
+import { withRouter } from 'react-router-dom';
 import Signup from './Signup/Signup';
-import Login from './Login/Login';
 import Search from './Search/Search';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSearch } from '@fortawesome/free-solid-svg-icons';
 import { faStar } from '@fortawesome/free-solid-svg-icons';
+import { MYPAGE_API, MYPAGE_TOKEN } from '../../config';
 import './nav.scss';
-import AuthService from '../../service/auth_service';
-
-
-const authService = new AuthService();
 
 class Nav extends Component {
   constructor() {
@@ -17,10 +14,23 @@ class Nav extends Component {
     this.state = {
       isLoginOrSignupModalOn: false,
       clickedType: '',
-      isSignup: false,
-      isLogin: false,
+      searchData: {},
+      userIsLoggedIn: localStorage.getItem('token') != null,
+      myUrl: '',
     };
     this.input = React.createRef();
+  }
+
+  componentDidMount() {
+    fetch(MYPAGE_API, {
+      method: 'GET',
+      headers: {
+        Authorization: MYPAGE_TOKEN,
+      },
+    })
+      .then((res) => res.json())
+      .then((res) => this.setState({ searchData: res.data }))
+      .catch((error) => console.log('error', error));
   }
 
   handleClickedType = (e) => {
@@ -34,15 +44,66 @@ class Nav extends Component {
     this.handleClickedType(e);
   };
 
+  onLoginSuccess = () => {
+    this.setState({ userIsLoggedIn: true, isLoginOrSignupModalOn: false });
+  };
+
+  onSignupSuccess = () => {
+    alert('회원가입 완료');
+    this.setState({ isLoginOrSignupModalOn: false });
+  };
+
+  logout = () => {
+    localStorage.clear();
+    alert('로그아웃 완료');
+    this.setState({ userIsLoggedIn: false });
+  };
+
   render() {
     const { isSignup, isLogin } = this.state;
-    const { myData } = this.props;
+    const profileImg_LS = localStorage.getItem('profileImg');
+    let loginComponent = (
+      <>
+        <button className='loginBtn' onClick={this.handleLoginOrSignupModal}>
+          로그인
+        </button>
+        <button className='signupBtn' onClick={this.handleLoginOrSignupModal}>
+          회원가입
+        </button>
+      </>
+    );
+
+    if (this.state.userIsLoggedIn) {
+      loginComponent = (
+        <>
+          <div onClick={this.logout} className='logoutBtn'>
+            로그아웃
+          </div>
+          <div>
+            <img
+              className='profileLS'
+              onClick={() => {
+                this.props.history.push('/mypage');
+              }}
+              src={
+                !profileImg_LS ? '/images/defaultProfile.png' : profileImg_LS
+              }
+            />
+          </div>
+        </>
+      );
+    }
 
     return (
       <>
         <div className='Nav'>
           <div className='navWrapper'>
-            <div className='navLeft'>
+            <div
+              className='navLeft'
+              onClick={() => {
+                this.props.history.push('/');
+              }}
+            >
               <img
                 src='/images/gotchapediaText.png'
                 alt='gotchapediaLogo'
@@ -58,25 +119,17 @@ class Nav extends Component {
                   <FontAwesomeIcon icon={faSearch} />
                 </div>
                 <div className='searchInput'>
-                  <Search searchData={myData} inputRef={this.input} />
+                  <Search inputRef={this.input} />
                 </div>
               </div>
-
-              <button
-                className='loginBtn'
-                onClick={(e) => this.handleLoginOrSignupModal(e)}>
-                로그인
-              </button>
-              <button
-                className='signupBtn'
-                onClick={(e) => this.handleLoginOrSignupModal(e)}>
-                회원가입
-              </button>
+              {loginComponent}
               <div className='starIcon'>
                 <FontAwesomeIcon icon={faStar} />
               </div>
-              <div className='rate'>평가하기</div>
               <img
+                onClick={() => {
+                  this.props.history.push('/mypage');
+                }}
                 src='/images/profile.jpg'
                 alt='profile'
                 className='profile'
@@ -89,7 +142,8 @@ class Nav extends Component {
             handleClickedType={this.handleClickedType}
             handleLoginOrSignupModal={this.handleLoginOrSignupModal}
             clickedType={this.state.clickedType}
-            authService={authService}
+            onLoginSuccess={this.onLoginSuccess}
+            onSignupSuccess={this.onSignupSuccess}
           />
         )}
       </>
@@ -97,4 +151,4 @@ class Nav extends Component {
   }
 }
 
-export default Nav;
+export default withRouter(Nav);

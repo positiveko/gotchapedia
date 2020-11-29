@@ -1,0 +1,19 @@
+@import '../../../../styles/common.scss';
+
+.GalleryBox {
+  display: flex;
+  overflow: hidden;
+  overflow-x: scroll;
+  padding: 10px 0;
+
+  .galleryPictureWrapper {
+    padding: 0px 5px 10px 7px;
+    display: flex;
+    align-items: flex-end;
+    .galleryPicture {
+      width: 138px;
+      height: 89px;
+      border: 1px solid #000000;
+    }
+  }
+}

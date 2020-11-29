@@ -15,6 +15,7 @@
     border-radius: 5px;
     background-color: #fff;
     padding: 15px;
+    z-index: 10000;
 
     .seeTitle {
       display: flex;
@@ -114,6 +115,10 @@
       padding: 10px 0;
       color: $pink;
       font-weight: bold;
+
+      .seeCancelBtn {
+        cursor: pointer;
+      }
     }
   }
 }

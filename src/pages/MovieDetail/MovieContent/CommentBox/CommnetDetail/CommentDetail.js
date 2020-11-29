@@ -1,81 +1,63 @@
 import React, { Component } from 'react';
+import { withRouter } from 'react-router-dom';
 import Nav from '../../../../../components/Nav/Nav';
+import CommentDetailBox from './CommentDetailBox/CommentDetailBox';
 import './CommentDetail.scss';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowLeft } from '@fortawesome/free-solid-svg-icons';
-import { faStar } from '@fortawesome/free-solid-svg-icons';
-import { faThumbsUp } from '@fortawesome/free-solid-svg-icons';
-import { faComment } from '@fortawesome/free-solid-svg-icons';
-// import CommentBox from '../CommentBox';
+import { PREFERRED_TOKEN, SERVER } from '../../../../../config';
 
 class CommentDetail extends Component {
   constructor() {
     super();
     this.state = {
-      commentData: [],
-    }
+      commentList: [],
+    };
   }
 
   componentDidMount() {
-    fetch("/Data/contentdata.json", {
+    fetch(`${SERVER}/movies/22/comments`, {
+      headers: {
+        Authorization: PREFERRED_TOKEN,
+      },
     })
-    .then(res => res.json())
-    .then(res => {
-      this.setState({
-        contentData: res.data,
-      })
-    })
+      .then((res) => res.json())
+      .then((res) => {
+        this.setState({
+          commentList: res.data,
+        });
+      });
   }
 
+  goToMovieDetail = () => {
+    this.props.history.push(`/movies/${this.props.match.params.id}`);
+  };
+
   render() {
-    const { contentData } = this.state;
+    const { commentList, newCommentArr } = this.state;
 
     return (
       <>
         <Nav />
         <div className='detailHeading'>
-          <FontAwesomeIcon className='headingArrow' icon={faArrowLeft} />
+          <FontAwesomeIcon
+            className='headingArrow'
+            onClick={this.goToMovieDetail}
+            icon={faArrowLeft}
+          />
           <div className='headingTitle'>코멘트</div>
-        </div>      
+        </div>
         <div className='commentBoxWrapper'>
-          {contentData && contentData.map((el, idx) => {
-            return (
-              <div key={idx} className='commentBox'>
-                <div className='commentTitle'>
-                  <div className='titleLeft'>
-                    <img src={el.image} alt='작성자아이콘'></img>
-                    <div className='writerId'>{el.writerId}
-                      <div className='writerIcon'></div>
-                    </div>
-                  </div>
-                  <div className='titleRight'>
-                    <FontAwesomeIcon className='writerStar' icon={faStar} />
-                    {el.rating}
-                  </div>
-                </div>
-                <div className='commentContent'>
-                  <p>
-                    {el.desc}
-                  </p>
-                </div>
-                <div className='commentIcons'>
-                  <div className='thumbsUpWrapper'>
-                    <FontAwesomeIcon className='thumsUpIcon' icon={faThumbsUp} />
-                    {el.thumbsup}
-                  </div>
-                  <div className='commentWrapper'>
-                    <FontAwesomeIcon className='commentIcon' icon={faComment} />
-                    {el.comment}
-                  </div>
-                </div>
-                <div className='like'>좋아요</div>
-              </div>              
-            )
-          })}
+          <CommentDetailBox
+            handleComment={this.handleComment}
+            enterAddEvent={this.enterAddEvent}
+            commentDetailBoxData={commentList}
+            newCommentArr={newCommentArr}
+          />
         </div>
       </>
-    )
+    );
   }
 }
 
-export default CommentDetail;
+export default withRouter(CommentDetail);

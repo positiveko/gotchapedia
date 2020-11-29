@@ -1,24 +1,29 @@
 @import '../../../../styles/common.scss';
 
 .castingContentList {
-  // 여기 왜 flex가 안먹음??
   display: flex;
   margin: 10px;
   border-bottom: 1px solid #ddd;
 
-  img {
+  .castingImage {
     @include mediumProfile;
     margin: 10px;
+    overflow: hidden;
+    .castingImg {
+      object-fit: cover;
+      width: 3.5em;
+      height: 3.5em;
+    }
   }
 
   .profileDetail {
     margin: auto 0;
 
-    .name {
+    .castingName {
       margin-bottom: 5px;
     }
 
-    .role {
+    .castingRole {
       color: $grey;
     }
   }

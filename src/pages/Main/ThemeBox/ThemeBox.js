@@ -1,150 +1,94 @@
 import React, { Component } from 'react';
-// import MovieBox from './MovieBox/MovieBox';
 import MovieBox from './MovieBox/MovieBox';
+import ScrollMenu from 'react-horizontal-scrolling-menu';
 import './themeBox.scss';
 
 class ThemeBox extends Component {
-  constructor() {
-    super();
-    this.state = {
-      movieList: [],
-    };
+  constructor(props) {
+    super(props);
+    this.state = { movieList: [], idMovieList: {} };
+  }
+  componentDidMount() {
+    this.fetcharow();
   }
 
-  componentDidMount() {
-    fetch('http://localhost:3000/data/movielist.json', {
+  fetcharow = () => {
+    fetch('http://localhost:3000/data//movielist.json', {
       method: 'GET',
     })
       .then((res) => res.json())
       .then((res) => {
+        const { idMovieList } = this.state;
+        let newIdMovieList = { ...idMovieList };
+        const users = [
+          '고수희님의 Pick',
+          '고은정님의 Pick',
+          '김병준님 Pick',
+          '김태현님의의 Pick',
+          '이영주님의 Pick',
+          '장규석의 Pick',
+        ];
+        for (let i = 0; i < 6; i++) {
+          newIdMovieList[users[i]] = {
+            name: users[i],
+            favoritemovies: res.data,
+          };
+        }
+
+        this.setState({ idMovieList: newIdMovieList });
+        let list = [];
+        for (let key in newIdMovieList) {
+          list.push(newIdMovieList[key]);
+        }
+
         this.setState({
-          movieList: res.data,
+          movieList: list,
         });
       });
-  }
+  };
 
   render() {
-    console.log(this.state.movieList);
+    const { movieListData } = this.props;
     return (
       <>
-        <div className='onesPick'>
-          <div className='onesPickHeadWrap'>
-            <div className='onesPickHeadCover'>
-              <p className='onesPickHead'>Davey's pick!</p>
-              <div className='boxRankingCover'>
-                <div
-                  className='boxRankingWrap'
-                  style={{ display: 'flex', alignItems: 'center' }}
-                >
-                  <div className='blankLeft' direction='left'></div>
-                  {this.state.movieList.map((movieboxData) => {
-                    return (
-                      <MovieBox
-                        moviedate={movieboxData.moviedate}
-                        movieimg={movieboxData.movieimg}
-                        movierate={movieboxData.movierate}
-                        movietitle={movieboxData.movietitle}
+        {this.state.movieList.map((oneHorizontalLayoutDataPayload) => {
+          return (
+            <div className='onesPick'>
+              <div className='onesPickHeadWrap'>
+                <div className='fakeCover'>
+                  <div className='onesPickHeadCover'>
+                    <p className='onesPickHead'>
+                      {oneHorizontalLayoutDataPayload.name}
+                    </p>
+                    <div className='boxRankingCover'>
+                      <ScrollMenu
+                        data={oneHorizontalLayoutDataPayload.favoritemovies.map(
+                          (movieboxData) => {
+                            return (
+                              <MovieBox
+                                date={movieboxData.moviedate}
+                                imageURL={movieboxData.movieimg}
+                                rate={movieboxData.movierate}
+                                title={movieboxData.movietitle}
+                                movieId={movieboxData.movieId}
+                              />
+                            );
+                          }
+                        )}
+                        arrowLeft={<div className='leftNavArrow' />}
+                        arrowRight={<div className='rightNavArrow' />}
+                        scrollBy={5}
+                        wheel={false}
                       />
-                    );
-                  })}
-                  {/* <div className='blankLeft' direction='left'></div> */}
-                  <div className='blankRight' direction='right'></div>
-                </div>
-                <div className='leftArrow' direction='left'>
-                  <div className='leftArrowBody'>
-                    {/* <img className='leftArrowImg' alt='arrow' src='/images/totheleft'/> */}
-                  </div>
-                </div>
-                <div className='rightArrow' direction='right'>
-                  <div className='rightArrowBody'>
-                    {/* <img className='rightArrowImg' alt='arrow' src='/images/totheright'/> */}
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
-        </div>
-
-          {/* 두번째 Themebox */}
-        <div className='onesPick'>
-          <div className='onesPickHeadWrap'>
-            <div className='fakeCover'>
-              <p className='onesPickHead'>Sooyeol's pick!</p>
-              <div className='boxRankingCover'>
-                <div
-                  className='boxRankingWrap'
-                  style={{ display: 'flex', alignItems: 'center' }}
-                >
-                  <div className='blankLeft' direction='left'></div>
-                  {this.state.movieList.map((movieboxData) => {
-                    return (
-                      <MovieBox
-                        moviedate={movieboxData.moviedate}
-                        movieimg={movieboxData.movieimg}
-                        movierate={movieboxData.movierate}
-                        movietitle={movieboxData.movietitle}
-                      />
-                    );
-                  })}
-                  {/* <div className='blankLeft' direction='left'></div> */}
-                  <div className='blankRight' direction='right'></div>
-                </div>
-                <div className='leftArrow' direction='left'>
-                  <div className='leftArrowBody'>
-                    {/* <img className='leftArrowImg' alt='arrow' src='/images/totheleft'/> */}
-                  </div>
-                </div>
-                <div className='rightArrow' direction='right'>
-                  <div className='rightArrowBody'>
-                    {/* <img className='rightArrowImg' alt='arrow' src='/images/totheright'/> */}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-                
-          {/* 세번째 Themebox */}
-        <div className='onesPick'>
-          <div className='onesPickHeadWrap'>
-            <div className='fakeCover'>
-              <p className='onesPickHead'>bonnie's pick!</p>
-              <div className='boxRankingCover'>
-                <div
-                  className='boxRankingWrap'
-                  style={{ display: 'flex', alignItems: 'center' }}
-                >
-                  <div className='blankLeft' direction='left'></div>
-                  {this.state.movieList.map((movieboxData) => {
-                    return (
-                      <MovieBox
-                        moviedate={movieboxData.moviedate}
-                        movieimg={movieboxData.movieimg}
-                        movierate={movieboxData.movierate}
-                        movietitle={movieboxData.movietitle}
-                      />
-                    );
-                  })}
-                  {/* <div className='blankLeft' direction='left'></div> */}
-                  <div className='blankRight' direction='right'></div>
-                </div>
-                <div className='leftArrow' direction='left'>
-                  <div className='leftArrowBody'>
-                    {/* <img className='leftArrowImg' alt='arrow' src='/images/totheleft'/> */}
-                  </div>
-                </div>
-                <div className='rightArrow' direction='right'>
-                  <div className='rightArrowBody'>
-                    {/* <img className='rightArrowImg' alt='arrow' src='/images/totheright'/> */}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+          );
+        })}
       </>
     );
   }
 }
-
 export default ThemeBox;

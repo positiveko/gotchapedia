@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { withRouter } from 'react-router-dom';
-import { DETAIL_API, DETAIL_TOKEN } from '../../../config';
+import { SEARCH_API } from '../../../config';
 import './search.scss';
 
 const RECENT_KEYWORDS = 'RECENT_KEYWORDS';
@@ -10,16 +10,19 @@ class Search extends Component {
   constructor() {
     super();
     this.state = {
+      searchData: [],
       searchValue: '',
       isSearchOn: false,
       isListActive: false,
       filteredMovie: [],
       detailData: {},
+      RECENT_KEYWORDS: [],
     };
   }
 
   componentDidMount() {
     window.addEventListener('click', this.handleInputBlur);
+    this.loadSearchData();
   }
 
   componentWillUnmount() {
@@ -27,88 +30,52 @@ class Search extends Component {
   }
 
   handleInputBlur = (e) => {
-    // e.stopPropagation();
-
     const isExist = e.composedPath().includes(this.props.inputRef.current);
-
-    // console.log(isExist);
     if (!isExist) {
       this.setState({ isListActive: false });
     }
-    // for (let node of e.composedPath()) {
-    //   console.log(node == this.input.current);
-    //   // console.log();
-    // }
-
-    // if (!isExist) console.log('input', e.path);
-
-    // if (!isExist) {
-    //   this.setState({ isListActive: false });
-    // }
   };
 
-  // 잠시 꺼놓습니다..
-  // componentDidMount() {
-  //   this.loadDetailData();
-  // }
-
-  // loadDetailData = () => {
-  //   fetch(DETAIL_API, {
-  //     method: 'GET',
-  //     headers: {
-  //       Authorization: DETAIL_TOKEN,
-  //     },
-  //   })
-  //     .then((res) => res.json())
-  //     .then((res) => this.setState({ detailData: res.data }))
-  //     .catch((error) => console.log('error', error));
-  // };
+  loadSearchData = () => {
+    fetch(SEARCH_API)
+      .then((res) => res.json())
+      .then((res) => this.setState({ searchData: res.data }))
+      .catch((error) => console.log('error', error));
+  };
 
   goToDetail = (e) => {
-    // event.stopPropagation();
-    // console.log(e);
-    const isExist = e.nativeEvent.path.includes(this.props.inputRef.current);
-    console.log(isExist);
-    // console.log('검색결과', isExist);
-    // this.props.history.push(`movie-detail/${event.key}`);
-    // this.setState({ isListActive: false });
+    this.state.history.push(`/movies/${this.state.searchData.movieId}`);
   };
 
   saveKeyword = () => {
-    const { searchValue } = this.state;
-    searchValueList.push(searchValue);
-    const setSearchValueList = Array.from(new Set(searchValueList));
-    localStorage.setItem(RECENT_KEYWORDS, JSON.stringify(setSearchValueList));
+    if (this.state.searchValue.trim() === '') return;
+    searchValueList = Array.from(
+      new Set([...searchValueList, this.state.searchValue])
+    );
+    localStorage.setItem(RECENT_KEYWORDS, JSON.stringify(searchValueList));
   };
 
   deleteKeywords = () => {
-    console.log('click'); // 클릭이 안 됨.. 왜...?
+    localStorage.removeItem(RECENT_KEYWORDS);
+    this.setState({ RECENT_KEYWORDS });
   };
 
   searchMovie = (event) => {
-    // event.preventDefault();
-    const { searchValue } = this.state;
-    const { searchData } = this.props;
-    const searchPool = searchData.data;
+    event.preventDefault();
+    const { searchValue, searchData, filteredMovie } = this.state;
     const searchKeywords = searchValue.split(' ');
-    let tempSearchPool = [...searchPool];
-    let tempFilteredMovie = [];
-    if (searchValue.trim() === '') {
-      return;
-    }
-    searchKeywords.forEach((key) => {
-      if (key !== '') {
-        tempFilteredMovie = tempSearchPool.filter((movie) => {
-          if (movie.title.includes(key)) {
-            return true;
-          }
-        });
-        tempSearchPool = [...tempFilteredMovie];
-      }
-    });
+    let tempFilteredMovie = [...filteredMovie];
+    tempFilteredMovie =
+      searchValue &&
+      [...searchData].filter((movie) => {
+        return searchKeywords.every((keyword) => movie.title.includes(keyword));
+      });
+
     if (event.key === 'Enter') {
       this.saveKeyword();
+      this.setState({ searchValue: '' });
     }
+
     this.setState({ filteredMovie: tempFilteredMovie });
   };
 
@@ -117,18 +84,10 @@ class Search extends Component {
   };
 
   render() {
-    const {
-      searchValue,
-      isSearchOn,
-      isListActive,
-      filteredMovie,
-      detailData,
-    } = this.state;
+    const { searchValue, isListActive, filteredMovie } = this.state;
     let loadedKeywords = JSON.parse(localStorage.getItem(RECENT_KEYWORDS));
-    // console.log(loadedKeywords);
-
     return (
-      <>
+      <div className='Search'>
         <input
           type='text'
           className='searchInput'
@@ -138,56 +97,78 @@ class Search extends Component {
           onChange={this.onSearchInputChange}
           onFocus={() => this.setState({ isListActive: true })}
           ref={this.input}
-          // onBlur={(e) =>
-          //   {
-          //     console.log(e)
-          //     this.setState({ isListActive: false })
-          //   }
-          // }
           onKeyUp={this.searchMovie}
         />
         <div className={isListActive ? 'listBox' : 'displayNone'}>
           <div className='searchList'>
-            <div className='searchHeaderWrapper'>
+            <ul className='filteredList'>
+              {filteredMovie.length > 0 &&
+                filteredMovie.map((movie) => (
+                  <li
+                    className='resultMovie'
+                    key={movie.movieId}
+                    onClick={() => {
+                      this.props.history.push(`/movies/${movie.movieId}`);
+                      window.location.reload();
+                    }}>
+                    {movie.title}
+                  </li>
+                ))}
+            </ul>
+            <div
+              className={
+                loadedKeywords?.length > 0
+                  ? 'searchHeaderWrapper'
+                  : 'displayNone'
+              }>
               <span>최근 검색어</span>
               <div className='keywordDeleteBtn' onClick={this.deleteKeywords}>
                 모두 삭제
               </div>
             </div>
             <ul className='latestList'>
-              {filteredMovie &&
-                filteredMovie.map((movie) => (
-                  <li
-                    className='resultMovie'
-                    key={movie.movieId}
-                    className={movie.movieId}>
-                    {movie.title}
+              {loadedKeywords?.length > 0 &&
+                loadedKeywords.map((keyword, idx) => (
+                  <li key={idx} className='resultMovie'>
+                    {keyword}
                   </li>
-                ))}
-              {loadedKeywords &&
-                loadedKeywords.map((keyword) => (
-                  <li className='resultMovie'>{keyword}</li>
                 ))}
             </ul>
           </div>
           <div className='popularList'>
             <div className='searchHeaderWrapper'>
               <span>인기 검색어</span>
-              <div className='keywordDeleteBtn'>모두 삭제</div>
+              <div className='keywordDeleteBtn' onClick={this.deleteKeywords}>
+                모두 삭제
+              </div>
             </div>
             <ul className='latestList'>
               <li
                 className='resultMovie'
                 key='23'
-                onClickCapture={this.goToDetail}>
+                onClick={() => {
+                  this.props.history.push('/movies/22');
+                }}>
                 바닐라 스카이
               </li>
-              <li className='resultMovie'>라라랜드</li>
-              <li className='resultMovie'>붉은 돼지</li>
+              <li
+                className='resultMovie'
+                onClick={() => {
+                  this.props.history.push('/movies/6');
+                }}>
+                테넷
+              </li>
+              <li
+                className='resultMovie'
+                onClick={() => {
+                  this.props.history.push('/movies/4');
+                }}>
+                버드맨
+              </li>
             </ul>
           </div>
         </div>
-      </>
+      </div>
     );
   }
 }

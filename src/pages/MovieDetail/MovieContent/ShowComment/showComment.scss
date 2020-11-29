@@ -1,0 +1,47 @@
+@import '../../../../styles/common.scss';
+
+.commentCrudWrapper {
+  background-color: #fff;
+  border: 1px solid #ddd;
+  margin-bottom: 20px;
+  border-radius: 5px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+
+  .commentCrudLeft {
+    display: flex;
+    align-items: center;
+    font-size: 15px;
+    .crudProfileImage {
+      @include mediumProfile;
+      margin-right: 20px;
+    }
+    .crudProfileName {
+      margin-right: 20px;
+    }
+  }
+  .commentBox {
+    display: inline-block;
+    height: 50px;
+  }
+  .commentCrudRight {
+    display: flex;
+    .commentDeleteIcon {
+      margin-right: 20px;
+      font-size: 18px;
+      cursor: pointer;
+      &:hover {
+        transform: scale(1.1);
+      }
+    }
+    .commentUpdateIcon {
+      font-size: 18px;
+      cursor: pointer;
+      &:hover {
+        transform: scale(1.1);
+      }
+    }
+  }
+}

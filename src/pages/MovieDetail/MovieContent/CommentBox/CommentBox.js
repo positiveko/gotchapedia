@@ -9,46 +9,60 @@ class CommentBox extends Component {
   constructor() {
     super();
     this.state = {
-    }
+      isLike: false,
+      thumbsUpCount: '',
+      commentBoxData: [],
+    };
   }
 
-  render() {
-    const { contentData } = this.props;
+  likeEvent = (cnt) => {
+    const { isLike } = this.state;
+    this.setState({
+      isLike: !isLike,
+    });
+  };
 
+  render() {
+    const { commentList } = this.props;
+    let likeCount = Number(commentList.likeCount);
+    const { isLike } = this.state;
+    
     return (
       <>
         <div className='commentBox'>
           <div className='commentTitle'>
             <div className='titleLeft'>
-              <img src={contentData.profile} alt='작성자아이콘' />
-              <div className='writerId'>{contentData.writerId}
-                <div className='writerIcon'></div>
-              </div>
+              <img className='commentorImage' src='/images/defaultProfile.png' alt='작성자아이콘' />
+              <div className='commentorId'>{commentList.userName} </div>
             </div>
             <div className='titleRight'>
-              <FontAwesomeIcon className='writerStar' icon={faStar} />
-              {contentData.rating}
+              <FontAwesomeIcon className='commentorStar' icon={faStar} />
+              {commentList.starPoint}
             </div>
           </div>
           <div className='commentContent'>
-            <p>
-              {contentData.desc}
-            </p>
+            <p>{commentList.content}</p>
           </div>
           <div className='commentIcons'>
             <div className='thumbsUpWrapper'>
               <FontAwesomeIcon className='thumsUpIcon' icon={faThumbsUp} />
-              {contentData.thumbsup}
+              {isLike ? (likeCount += 1) : likeCount}
             </div>
             <div className='commentWrapper'>
               <FontAwesomeIcon className='commentIcon' icon={faComment} />
-              {contentData.comment}
+              {commentList.replyCount}
             </div>
           </div>
-          <div className='like'>좋아요</div>
+          <div className='likeEventContainer'>
+            <div
+              className={isLike ? 'pushedLike' : 'unpushedLike'}
+              onClick={this.likeEvent}>
+              좋아요
+            </div>
+          </div>
         </div>
-      </>  
-    )
+      </>
+    );
   }
 }
 

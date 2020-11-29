@@ -1,70 +1,52 @@
 import React, { Component } from 'react';
-// import Slider from 'react-slick';
-// import GalleryBox from './GalleryBox/GalleryBox';
-import '../../../../node_modules/slick-carousel/slick/slick.css';
-import '../../../../node_modules/slick-carousel/slick/slick-theme.css';
-// import VideoBox from './VideoBox/VideoBox';
+import GalleryBox from './GalleryBox/GalleryBox';
+import MovieClip from '../MovieSide/MovieClip/MovieClip';
 import './movieSide.scss';
 
 class MovieSide extends Component {
   constructor() {
     super();
     this.state = {
-      pictureVideoData: [],
-    }
+      videos: [],
+    };
   }
 
   componentDidMount() {
-    fetch("/Data/contentdata.json", {
-    })
-    .then(res => res.json())
-    .then(res => {
-      this.setState({
-        pictureVideoData: res.data,
-      })
-    })
+    const { movieSideData } = this.props;
+    return fetch(
+      `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=5&q=${movieSideData.name}&type=video&key=AIzaSyBaSwnfcejxYUkiRooPTmjIeMBqBuWpCds`,
+      {
+        method: 'GET',
+        redirect: 'follow',
+      }
+    )
+      .then((response) => response.json())
+      .then((result) => this.setState({ videos: result.items }))
+      .catch((error) => console.log('error', error));
   }
 
   render() {
-
-    const settings = {
-      dots: false,
-      infinite: true,
-      speed: 500,
-      slidesToShow: 2,
-      slidesToScroll: 2,
-    };
-
-    // 슬릭 슬라이더 나중에 너무 강함
-    const { pictureVideoData } = this.state;
+    const { videos } = this.state;
+    const { movieSideData } = this.props;
+    const subImage = movieSideData.subImage;
+    
     return (
       <div className='MovieSide'>
         <div className='galleryWrapper'>
           <div className='galleryHeading'>갤러리</div>
-          {/* <Slider {...settings}>
-            {pictureVideoData.map((el, idx) => {
-              return (
-                <GalleryBox key={idx} pictureVideoData={el}/>
-              )
-            })}
-           
-          </Slider> */}
+          <GalleryBox subImage={subImage} />
         </div>
         <div className='border'></div>
         <div className='videoWrapper'>
           <div className='videoHeading'>동영상</div>
           <div className='videoBoxWrapper'>
-            {/* <Slider {...settings}>
-              {pictureVideoData.map((el, idx) => {
-                return (
-                  <VideoBox key={idx} pictureVideoData={el}/>
-                )
-              })}
-            </Slider> */}
+            {videos && (
+              <MovieClip videos={videos} movieTitle={movieSideData.name} />
+            )}
           </div>
         </div>
       </div>
-    )
+    );
   }
 }
 

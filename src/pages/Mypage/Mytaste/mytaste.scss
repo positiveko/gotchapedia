@@ -148,7 +148,6 @@
       .listWrapper {
         @include flex-center;
         img {
-          width: 517px;
           object-fit: cover;
           margin-bottom: 20px;
         }
@@ -226,7 +225,4 @@
       }
     }
   }
-}
-
-@media screen and (max-width: 700px) {
 }

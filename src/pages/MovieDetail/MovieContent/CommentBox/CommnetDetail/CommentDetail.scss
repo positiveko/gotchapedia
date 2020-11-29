@@ -4,7 +4,6 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
-  // align-items: center;
   height: 5.313em;
   border-bottom: 1px solid #ddd;
 
@@ -13,6 +12,7 @@
     font-size: 20px;
     font-weight: normal;
     margin: 0px 20px;
+    cursor: pointer;
   }
 
   .headingTitle {
@@ -31,12 +31,9 @@
   .commentBox {
     display: flex;
     flex-direction: column;
-    // width: 40em;
-    // height: 295px;
     padding: 10px;
     background-color: #eee;
     margin: 10px;
-    // padding: 20px;
     border-radius: 5px;
 
     .commentTitle {
@@ -72,8 +69,6 @@
       }
     }
     .commentContent {
-      // width: 270px;
-      // height: 170px;
       width: 100%;
       height: 100%;
       border-top: 1px solid #ddd;
